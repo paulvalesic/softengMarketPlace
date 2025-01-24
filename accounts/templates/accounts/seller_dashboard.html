@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <h2 class="mb-4">Seller Dashboard</h2>
+            
+            <!-- Add New Item Button -->
+            <a href="{% url 'post_item' %}" class="btn btn-primary mb-3">Add New Item</a>
+
+            <!-- Earnings Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-coins me-2"></i>Your Earnings</h5>
+                        <i class="fas fa-wallet fa-2x"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title display-4">
+                        {{ request.user.token_balance|floatformat:2 }}
+                        <small class="h6 text-muted">tokens</small>
+                    </h3>
+                </div>
+            </div>
+
+            <!-- Your Items Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Your Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                        {% for item in items %}
+                        <div class="col">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ item.title }}</h5>
+                                    <p class="card-text">{{ item.description|truncatechars:100 }}</p>
+                                    <p class="card-text">Price: ${{ item.price }}</p>
+                                    <p class="card-text">Quantity: {{ item.quantity }}</p>
+                                    <a href="{% url 'update_item' item.id %}" class="btn btn-warning">Update Item</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Your Orders</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for order in orders %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5>{{ order.item.title }}</h5>
+                                    <p class="mb-1">Buyer: {{ order.buyer.username }}</p>
+                                    <p class="mb-1">Status: 
+                                        <span class="badge 
+                                            {% if order.status == 'Pending' %}bg-warning
+                                            {% elif order.status == 'Confirmed' %}bg-success
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    {% if order.status == 'Confirmed' %}
+                                        {% if order.order_review.exists %}
+                                            {% with review=order.order_review.first %}
+                                                <div class="rating-badge bg-success text-white p-2 rounded">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-star me-1"></i>
+                                                        <span class="fw-bold">{{ review.rating }}/5</span>
+                                                    </div>
+                                                    {% if review.comment %}
+                                                        <div class="mt-1 small">
+                                                            "{{ review.comment|truncatechars:30 }}"
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="text-muted small">No review yet</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if order.status == 'Pending' %}
+                            <div class="mt-2">
+                                <a href="{% url 'confirm_order' order.id %}" 
+                                   class="btn btn-sm btn-warning">
+                                    Confirm Order
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Svi razgovori</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for chat in chat_partners %}
+                    <a href="{% url 'send_message' chat.partner.id %}" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                        <div class="me-auto">
+                            <div class="fw-bold">
+                                {{ chat.partner.username }}
+                                {% if chat.unread %}
+                                <span class="badge bg-danger">{{ chat.unread }}</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">
+                                {% if chat.item %}
+                                <i class="fas fa-tag"></i> {{ chat.item.title }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <small class="text-muted">{{ chat.timestamp|timesince }}</small>
+                    </a>
+                    {% empty %}
+                    <div class="p-3 text-center text-muted">
+                        Trenutno nemate razgovora
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Chat Styles */
+    .chat-messages {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    .message.sent {
+        margin-left: 20%;
+        background-color: #007bff;
+        color: white;
+        border-radius: 15px 15px 0 15px;
+    }
+
+    .message.received {
+        margin-right: 20%;
+        background-color: #e9ecef;
+        border-radius: 15px 15px 15px 0;
+    }
+
+    .message-inner {
+        padding: 10px 15px;
+        margin: 5px 0;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+
+    /* Rating Styles */
+    .rating-badge {
+        min-width: 70px;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+
+    .rating-badge:hover {
+        transform: scale(1.05);
+    }
+
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 0.75em;
+    }
+    .bg-pending { background-color: #ffc107 !important; }
+    .bg-confirmed { background-color: #198754 !important; }
+    .bg-shipped { background-color: #0d6efd !important; }
+    .bg-completed { background-color: #6c757d !important; }
+</style>
+{% endblock %}

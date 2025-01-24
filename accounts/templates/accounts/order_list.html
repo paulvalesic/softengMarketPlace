@@ -1,0 +1,58 @@
+# accounts/templates/accounts/partials/order_list.html
+<div class="list-group">
+    {% for order in orders %}
+    <div class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">
+                <a href="{% url 'item_detail' item_id=order.item.id %}" class="text-decoration-none">
+                    {{ order.item.title }}
+                </a>
+            </h5>
+            <small class="text-muted">Order #{{ order.id }}</small>
+        </div>
+        <div class="mt-2">
+            <span class="badge bg-{{ order.status|lower }} text-white">
+                Status: {{ order.status }}
+            </span>
+            <p class="mb-1 mt-2">
+                Seller: 
+                <a href="{% url 'seller_profile' user_id=order.item.seller.id %}" 
+                   class="text-decoration-none">
+                    {{ order.item.seller.username }}
+                </a>
+            </p>
+            <small class="text-muted">Ordered on {{ order.created_at|date:"M d, Y" }}</small>
+        </div>
+
+        {% if order.status == 'Confirmed' %}
+            <div class="mt-3 border-top pt-2">
+                {% if order.order_review.exists %}
+                    <div class="alert alert-success mb-0">
+                        <h6><i class="fas fa-star text-warning"></i> Your Review</h6>
+                        <div class="rating">
+                            {% with stars=order.order_review.first.rating %}
+                                {% for _ in "12345" %}
+                                    <i class="fas fa-star{% if forloop.counter > stars %}-o{% endif %} text-warning"></i>
+                                {% endfor %}
+                            {% endwith %}
+                        </div>
+                        <p class="mb-0 mt-2">{{ order.order_review.first.comment }}</p>
+                    </div>
+                {% else %}
+                    <a href="{% url 'submit_review' order.id %}" 
+                       class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit me-2"></i>Leave Review
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="list-group-item">
+        <div class="text-center text-muted py-3">
+            <i class="fas fa-box-open fa-3x mb-3"></i>
+            <h5>No orders found</h5>
+        </div>
+    </div>
+    {% endfor %}
+</div>
