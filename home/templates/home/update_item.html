@@ -1,0 +1,77 @@
+<!-- templates/update_item.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2d3748;
+    }
+    .form-control {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus {
+        border-color: #4a90e2;
+        box-shadow: 0 0 0 3px rgba(74,144,226,0.15);
+    }
+    .invalid-feedback {
+        display: block;
+        margin-top: 0.25rem;
+        color: #e53e3e;
+        font-size: 0.875rem;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="form-container">
+        <h2 class="text-center mb-4">📝 Update Item</h2>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row g-4">
+                {% for field in form %}
+                <div class="col-12">
+                    <label class="form-label" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    
+                    {{ field }}
+                    
+                    {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    
+                    {% for error in field.errors %}
+                    <div class="invalid-feedback">
+                        {{ error }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-4">
+                <button type="submit" class="btn btn-primary btn-lg px-4">
+                    💾 Update Item
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg px-4">
+                    ✖ Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .seller-profile {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    .profile-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .rating-badge {
+        background: #fff;
+        border-radius: 20px;
+        padding: 0.5rem 1.2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .review-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: transform 0.2s ease;
+    }
+    .review-card:hover {
+        transform: translateY(-2px);
+    }
+    .review-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.8rem;
+    }
+    .review-rating {
+        color: #ffc107;
+        font-weight: 500;
+    }
+    .review-date {
+        color: #6c757d;
+        font-size: 0.9em;
+    }
+    .back-link {
+        display: inline-block;
+        margin-top: 2rem;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+</style>
+
+<div class="seller-profile">
+    <!-- Profile Header -->
+    <div class="profile-header text-center">
+        <h1 class="mb-3">{{ seller.username }}'s Profile</h1>
+        <div class="average-rating">
+            {% if average_rating %}
+                <div class="rating-badge">
+                    <span class="fs-4">⭐ {{ average_rating|floatformat:1 }}</span>
+                    <span class="text-muted">/ 5</span>
+                    <span class="badge bg-secondary ms-2">{{ reviews.count }} reviews</span>
+                </div>
+            {% else %}
+                <p class="text-muted">No reviews yet</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <h3 class="mb-4">Customer Reviews</h3>
+    <div class="reviews-list">
+        {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-meta">
+                    <div class="review-rating">
+                        {{ review.rating }}/5
+                    </div>
+                    <strong>{{ review.reviewer.username }}</strong>
+                    <span class="review-date">{{ review.created_at|date:"M d, Y" }}</span>
+                </div>
+                <p class="mb-0">"{{ review.comment }}"</p>
+            </div>
+        {% empty %}
+            <div class="alert alert-info">
+                No reviews available yet. Be the first to leave a review!
+            </div>
+        {% endfor %}
+    </div>
+
+    <a href="{% url 'home' %}" class="back-link btn btn-outline-secondary">
+        ← Back to Home
+    </a>
+</div>
+{% endblock %}
