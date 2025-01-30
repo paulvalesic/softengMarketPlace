@@ -1,0 +1,93 @@
+<!-- chat.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-comments me-2"></i>
+                    Chat s {{ receiver.username }}
+                    {% if item %} o proizvodu "{{ item.title }}"{% endif %}
+                </h4>
+                <a href="{% if request.user.is_buyer %}{% url 'buyer_dashboard' %}{% else %}{% url 'seller_dashboard' %}{% endif %}" 
+                   class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left"></i> Natrag
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body chat-messages" style="max-height: 60vh; overflow-y: auto;">
+            {% for message in messages %}
+            <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %} mb-3">
+                <div class="message-inner p-3 rounded {% if message.sender == request.user %}bg-primary text-white{% else %}bg-light{% endif %}">
+                    <div class="d-flex justify-content-between small mb-2">
+                        <span>{{ message.sender.username }}</span>
+                        <span>{{ message.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    <p class="mb-0">{{ message.content|linebreaksbr }}</p>
+                    {% if message.item %}
+                    <div class="mt-2 small">
+                        <i class="fas fa-link"></i>
+                        Proizvod: <a href="{% url 'item_detail' item_id=message.item.id %}" 
+                                   class="{% if message.sender == request.user %}text-white{% else %}text-primary{% endif %}">
+                                   {{ message.item.title }}</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4">
+                Nema poruka u ovom chatu. Pošaljite prvu poruku!
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="card-footer">
+            <form method="post" class="message-form">
+                {% csrf_token %}
+                <div class="input-group">
+                    {{ form.content }}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Pošalji
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-messages {
+    background: #f8f9fa;
+}
+
+.message.sent {
+    margin-left: 20%;
+}
+
+.message.received {
+    margin-right: 20%;
+}
+
+.message-inner {
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.message-form textarea {
+    border-radius: 20px;
+    padding: 12px 20px;
+    resize: none;
+    border: 2px solid #dee2e6;
+    transition: all 0.3s;
+}
+
+.message-form textarea:focus {
+    border-color: #007bff;
+    box-shadow: none;
+}
+</style>
+{% endblock %}
