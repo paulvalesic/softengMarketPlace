@@ -1,4 +1,4 @@
-# accounts/templates/accounts/partials/order_list.html
+
 <div class="list-group">
     {% for order in orders %}
     <div class="list-group-item list-group-item-action">
@@ -29,13 +29,7 @@
                 {% if order.order_review.exists %}
                     <div class="alert alert-success mb-0">
                         <h6><i class="fas fa-star text-warning"></i> Your Review</h6>
-                        <div class="rating">
-                            {% with stars=order.order_review.first.rating %}
-                                {% for _ in "12345" %}
-                                    <i class="fas fa-star{% if forloop.counter > stars %}-o{% endif %} text-warning"></i>
-                                {% endfor %}
-                            {% endwith %}
-                        </div>
+
                         <p class="mb-0 mt-2">{{ order.order_review.first.comment }}</p>
                     </div>
                 {% else %}

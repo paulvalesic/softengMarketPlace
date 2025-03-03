@@ -8,9 +8,7 @@ from django.db import transaction, models
 from django.contrib import messages
 from django.db.models import Q, Count
 
-# --------------------------
-# Autentifikacija i dashboard
-# --------------------------
+
 @login_required
 def buyer_dashboard(request):
     if not request.user.is_buyer:
@@ -114,14 +112,12 @@ def seller_dashboard(request):
         'chat_partners': partners_with_messages
     })
 
-# --------------------------
-# Narudžbe i recenzije
-# --------------------------
+
 @login_required
 def submit_review(request, order_id):
     order = get_object_or_404(Order, id=order_id, buyer=request.user)
     
-    if order.status != 'Confirmed':
+    if order.status != 'Confirmed' :
         return redirect('buyer_dashboard')
 
     existing_review = Review.objects.filter(order=order).first()
@@ -154,37 +150,51 @@ def confirm_order(request, order_id):
     
     return redirect('home')
 
-# --------------------------
-# Registracija i login
-# --------------------------
+
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('home')
+
+            is_buyer = form.cleaned_data.get('is_buyer')
+            is_seller = form.cleaned_data.get('is_seller')
+
+            if is_buyer and is_seller:
+                form.add_error(None, "You can only select one role (Buyer or Seller). Please choose only one.")
+            elif not is_buyer and not is_seller:
+                form.add_error(None, "You must select either Buyer or Seller.")
+            if form.is_valid():
+                user = form.save()  
+                login(request, user)  
+                return redirect('home')
     else:
         form = UserRegistrationForm()
+
     return render(request, 'accounts/register.html', {'form': form})
 
 def user_login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-        user = User.objects.get(email=email)
-        if user.check_password(password):
-            login(request, user)
-            return redirect('home')
+
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):
+                login(request, user)
+                return redirect('home')
+            else:
+                messages.error(request, "Neispravan email ili lozinka. Pokušajte ponovo.")
+        except User.DoesNotExist:
+            messages.error(request, "Neispravan email ili lozinka. Pokušajte ponovo.")
+
+        return redirect('login')  
+
     return render(request, 'accounts/login.html')
 
 def user_logout(request):
     logout(request)
     return redirect('home')
 
-# --------------------------
-# Profil i artikli
-# --------------------------
 @login_required
 def user_dashboard(request):
     user = request.user
@@ -216,21 +226,10 @@ def user_dashboard(request):
     else:
         return redirect('home')
 
-def user_profile(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    items = user.items.all()
-    orders = user.orders.all()
-    reviews = user.reviews_received.all()
-    return render(request, 'accounts/profile.html', {
-        'user': user,
-        'items': items,
-        'orders': orders,
-        'reviews': reviews,
-    })
 
 @login_required
 def post_item(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.is_seller:
         form = ItemForm(request.POST)
         if form.is_valid():
             item = form.save(commit=False)
@@ -241,51 +240,48 @@ def post_item(request):
         form = ItemForm()
     return render(request, 'accounts/post_item.html', {'form': form})
 
-# --------------------------
-# Transakcije
-# --------------------------
 @login_required
 def place_order(request, item_id):
     item = get_object_or_404(Item, id=item_id)
     context = {'item': item}
-    
-    if request.method == 'POST':
+
+    if request.method == 'POST' and request.user.is_buyer:
         if item.quantity < 1:
             messages.error(request, "This item is out of stock!")
             return redirect('home')
-        
+
         user_balance = request.user.token_balance
         item_price = item.price
-        
+
         if user_balance >= item_price:
             try:
                 with transaction.atomic():
                     request.user.token_balance -= item_price
                     request.user.save()
-                    
+
                     seller = item.seller
                     seller.token_balance += item_price
                     seller.save()
-                    
+
                     order = Order.objects.create(
                         buyer=request.user,
                         item=item,
                         status='Pending'
                     )
-                    
+
                     item.quantity -= 1
                     item.save()
-                    
+
                     messages.success(request, "Order placed successfully!")
                     return redirect('buyer_dashboard')
-                    
+
             except Exception as e:
                 messages.error(request, f"Error processing order: {str(e)}")
+                return redirect('item_detail', item_id=item.id)
         else:
             messages.error(request, "Insufficient token balance to complete this purchase!")
-        
-        return redirect('item_detail', item_id=item.id)
-    
+            return redirect('item_detail', item_id=item.id)
+
     return render(request, 'accounts/place_order.html', context)
 
 def review_user(request, user_id):

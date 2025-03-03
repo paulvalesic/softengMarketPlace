@@ -3,7 +3,18 @@
 {% block content %}
 <div class="container py-5">
     <h1 class="display-4 mb-4 text-center">Welcome to MarketPlace</h1>
-    <h3 class="mb-4 text-muted text-center">Available Items ({{ items|length }})</h3>
+    <form method="GET" class="mb-4 text-center">
+        <label for="category" class="form-label h5">Filter by Category:</label>
+        <select name="category" id="category" class="form-select d-inline-block w-auto" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for key, name in categories %}
+                <option value="{{ key }}" {% if key == selected_category %}selected{% endif %}>
+                    {{ name }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+    
     
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for item in items %}

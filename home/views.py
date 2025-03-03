@@ -4,8 +4,17 @@ from accounts.forms import ItemForm
 from django.contrib.auth.decorators import login_required
 
 def home(request):
-    items = Item.objects.all()
-    return render(request, 'home/home.html', {'items': items})
+    category = request.GET.get('category') 
+    items = Item.objects.filter(quantity__gt=0)  
+
+    if category:  
+        items = items.filter(category=category)
+
+    return render(request, 'home/home.html', {
+        'items': items,
+        'selected_category': category,
+        'categories': Item.CATEGORY_CHOICES  
+    })
 
 def item_detail(request, item_id):
     item = get_object_or_404(Item, id=item_id)
@@ -14,7 +23,7 @@ def item_detail(request, item_id):
 def seller_profile(request, user_id):
     seller = get_object_or_404(User, id=user_id)
     reviews = Review.objects.filter(reviewed_user=seller)
-    average_rating = seller.average_rating()  # Calls the User model method
+    average_rating = seller.average_rating()  
     
     return render(request, 'home/seller_profile.html', {
         'seller': seller,
@@ -27,8 +36,7 @@ def seller_profile(request, user_id):
 @login_required
 def update_item(request, item_id):
     item = get_object_or_404(Item, id=item_id)
-    
-    # Verify ownership
+
     if item.seller != request.user:
         return redirect('home')
         

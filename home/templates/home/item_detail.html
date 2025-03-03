@@ -3,7 +3,6 @@
 {% block content %}
 <div class="container py-5">
     <div class="row">
-        <!-- Product Image Column -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <img src="{{ item.image_url }}" 
@@ -14,8 +13,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Product Details Column -->
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
@@ -25,14 +22,12 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
                             <h2 class="text-primary">${{ item.price }}</h2>
-                            <small class="text-muted">Price</small>
                         </div>
                         <div class="text-end">
                             <h4 class="text-success">
                                 <i class="fas fa-box-open"></i> 
                                 {{ item.quantity }} in stock
                             </h4>
-                            <small class="text-muted">Available quantity</small>
                         </div>
                     </div>
 
@@ -44,27 +39,10 @@
                                {{ item.seller.username }}
                             </a>
                         </h5>
-                        <div class="d-flex align-items-center">
-                            {% if item.seller.average_rating %}
-                                <div class="rating me-2">
-                                    {% for _ in "12345" %}
-                                        {% if forloop.counter <= item.seller.average_rating %}
-                                            <i class="fas fa-star text-warning"></i>
-                                        {% else %}
-                                            <i class="far fa-star text-warning"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                                <small class="text-muted">
-                                    ({{ item.seller.reviews_received.count }} reviews)
-                                </small>
-                            {% else %}
-                                <small class="text-muted">No reviews yet</small>
-                            {% endif %}
-                        </div>
+                        
                     </div>
 
-                    <!-- Action Buttons/Messages -->
+
                     <div class="mt-4">
                         {% if user.is_authenticated %}
                             {% if user.is_buyer %}

@@ -3,8 +3,6 @@ from .forms import MessageForm
 from .models import Message
 from accounts.models import User, Item
 from django.contrib.auth.decorators import login_required
-
-# messages/views.py
 from django.db.models import Q, Count
 from .models import Message
 
@@ -13,8 +11,7 @@ from .models import Message
 def send_message(request, receiver_id, item_id=None):
     receiver = get_object_or_404(User, id=receiver_id)
     item = get_object_or_404(Item, id=item_id) if item_id else None
-    
-    # Dohvati sve poruke između korisnika
+
     messages = Message.objects.filter(
         Q(sender=request.user, receiver=receiver) |
         Q(sender=receiver, receiver=request.user)
@@ -32,7 +29,6 @@ def send_message(request, receiver_id, item_id=None):
     else:
         form = MessageForm(initial={'content': ''})
 
-    # Označi poruke kao pročitane
     if receiver != request.user:
         messages.filter(is_read=False).update(is_read=True)
 
@@ -44,11 +40,8 @@ def send_message(request, receiver_id, item_id=None):
     })
 @login_required
 def dashboard(request):
-    # Existing code...
-    
-    # Add chat partners data
+
     if user.is_buyer:
-        # Get all unique sellers the buyer has messaged
         chat_partners = User.objects.filter(
             Q(received_messages__sender=user) | 
             Q(sent_messages__receiver=user)
@@ -57,6 +50,6 @@ def dashboard(request):
         )
     
     return render(request, 'accounts/buyer_dashboard.html', {
-        # ... other context
+
         'chat_partners': [(u, u.unread_messages) for u in chat_partners]
     })
